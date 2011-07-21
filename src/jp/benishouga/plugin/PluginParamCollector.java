@@ -57,7 +57,7 @@ public class PluginParamCollector {
      *            プラグインに渡す文字列
      * @return プラグイン情報
      */
-    public List<PluginParamHolder> collectorPluginParam(String source) {
+    public List<PluginParamHolder> collectPluginParam(String source) {
         List<PluginParamHolder> list = new ArrayList<PluginParamHolder>();
 
         PackageManager pm = context.getPackageManager();
