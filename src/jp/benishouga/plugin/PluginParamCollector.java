@@ -1,6 +1,7 @@
 package jp.benishouga.plugin;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import android.content.Context;
@@ -11,11 +12,24 @@ import android.content.pm.ResolveInfo;
 import android.database.Cursor;
 import android.net.Uri;
 
+/**
+ * プラグインの情報を収集するクラスです。
+ *
+ * @author benishouga
+ */
 public class PluginParamCollector {
 
     private Context context;
     private String pluginAction;
 
+    /**
+     * コンストラクタ.
+     *
+     * @param context
+     *            アプリケーションコンテキスト
+     * @param pluginAction
+     *            対応アプリケーションを抽出するためのAction
+     */
     public PluginParamCollector(Context context, String pluginAction) {
         this.context = context;
         this.pluginAction = pluginAction;
@@ -24,14 +38,19 @@ public class PluginParamCollector {
     /**
      * プラグインとなりえるアプリケーションを見つけた際に呼び出されるlistenerクラスを設定します。
      */
-    public void setListener(OnFindPluginListener listener) {
-        this.listener = listener;
+    public void setOnFindPluginListener(OnFindPluginListener listener) {
+        this.onFindPluginlistener = listener;
+    }
+
+    /**
+     * プラグインとのアプリケーションとの連携でエラーが発生した際のlistenerクラスを設定します。
+     */
+    public void setOnErrorPluginListener(OnErrorPluginListener listener) {
+        this.onErrorPluginListener = listener;
     }
 
     /**
      * プラグインとなりえるアプリケーションを見つけた際に呼び出されるlistenerクラスです。
-     *
-     * @author benishouga
      */
     public interface OnFindPluginListener {
         /**
@@ -39,53 +58,100 @@ public class PluginParamCollector {
          *
          * @param targetName
          *            {@link ActivityInfo#name}
+         * @param packageName
+         *            {@link ActivityInfo#packageName}
          * @return 対象を読み込むか否か true の場合、読み込み処理を続行します。 false の場合、読み込み処理を回避します。
          */
-        public boolean onFindPlugin(String targetName);
+        public boolean onFindPlugin(String targetName, String packageName);
     }
 
-    private OnFindPluginListener listener = null;
+    /**
+     * プラグインとのアプリケーションとの連携でエラーが発生した際に呼び出されるlistenerクラスです。
+     */
+    public interface OnErrorPluginListener {
+        /**
+         * プラグインとのアプリケーションとの連携でエラーが発生した際に呼び出されます。
+         */
+        public void onErrorPlugin(PluginParamHolder holder, String source, Exception e);
+    }
+
+    private OnFindPluginListener onFindPluginlistener = null;
+    private OnErrorPluginListener onErrorPluginListener = null;
 
     /**
      * プラグイン情報を収集します。
      *
-     * @param context
-     *            コンテキスト
-     * @param pluginAction
-     *            プラグインを探すためのAction文字列
      * @param source
      *            プラグインに渡す文字列
      * @return プラグイン情報
      */
     public List<PluginParamHolder> collectPluginParam(String source) {
+        List<PluginParamHolder> list = collectPlugin();
+
+        for (PluginParamHolder holder : list) {
+            try {
+                queryPlugin(holder, source);
+            } catch (Exception e) {
+                if (onErrorPluginListener == null) {
+                    throw new PluginErrorException(e);
+                }
+                onErrorPluginListener.onErrorPlugin(holder, source, e);
+            }
+        }
+
+        return list;
+    }
+
+    /**
+     * プラグインに接続し、プラグインを呼び出すための情報を取得します。
+     *
+     * @param holder
+     *            プラグインアプリケーションを呼び出すための情報を保持するクラスです。
+     * @param source
+     *            プラグインアプリケーションに接続した際に渡すパラメータ文字列
+     */
+    public void queryPlugin(PluginParamHolder holder, String source) {
+        final Uri uri = Uri.parse("content://" + holder.getClassName() + "?" + Plugin.QUERY_KEY_SOURCE + "=" + Uri.encode(source));
+
+        long startTime = new Date().getTime();
+
+        final Cursor cur = context.getContentResolver().query(uri, null, null, null, null);
+        if (cur != null) {
+            try {
+                while (cur.moveToNext()) {
+                    holder.add(PluginCursor.revert(cur));
+                }
+            } finally {
+                cur.close();
+            }
+        }
+
+        holder.setTimeSpent(new Date().getTime() - startTime);
+    }
+
+    /**
+     * プラグイン情報を収集します。
+     *
+     * @return プラグインの設定に関する情報
+     */
+    public List<PluginParamHolder> collectPlugin() {
         List<PluginParamHolder> list = new ArrayList<PluginParamHolder>();
 
         PackageManager pm = context.getPackageManager();
-        List<ResolveInfo> resolveInfo = pm.queryIntentActivities(new Intent(pluginAction), PackageManager.MATCH_DEFAULT_ONLY);
-        for (ResolveInfo info : resolveInfo) {
+        List<ResolveInfo> resolveInfoList = pm.queryIntentActivities(new Intent(pluginAction), 0);
 
-            if (listener != null) {
-                if (!listener.onFindPlugin(info.activityInfo.name)) {
+        for (ResolveInfo info : resolveInfoList) {
+            final ActivityInfo activityInfo = info.activityInfo;
+            if (onFindPluginlistener != null) {
+                if (!onFindPluginlistener.onFindPlugin(activityInfo.name, activityInfo.packageName)) {
                     continue;
                 }
             }
 
-            PluginParamHolder holder = new PluginParamHolder().setClassName(info.activityInfo.name).setPackageName(info.activityInfo.packageName);
-
-            Uri uri = Uri.parse("content://" + info.activityInfo.name + "?" + Plugin.QUERY_KEY_SOURCE + "=" + Uri.encode(source));
-            final Cursor cur = context.getContentResolver().query(uri, null, null, null, null);
-            if (cur != null) {
-                try {
-                    while (cur.moveToNext()) {
-                        holder.add(PluginCursor.revert(cur));
-                    }
-                } finally {
-                    cur.close();
-                }
-            }
-            list.add(holder);
+            PluginParamHolder holder = new PluginParamHolder(activityInfo.loadLabel(pm).toString(), activityInfo.name, activityInfo.packageName);
+            List<ResolveInfo> settingList = pm.queryIntentActivities(new Intent(holder.getSettingClassName()), PackageManager.MATCH_DEFAULT_ONLY);
+            list.add(holder.setExistSettingAcitivity(settingList != null && settingList.size() > 0));
         }
-
         return list;
     }
 }
