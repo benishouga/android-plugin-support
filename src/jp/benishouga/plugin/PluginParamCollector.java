@@ -138,7 +138,7 @@ public class PluginParamCollector {
         List<PluginParamHolder> list = new ArrayList<PluginParamHolder>();
 
         PackageManager pm = context.getPackageManager();
-        List<ResolveInfo> resolveInfoList = pm.queryIntentActivities(new Intent(pluginAction), 0);
+        List<ResolveInfo> resolveInfoList = pm.queryIntentActivities(new Intent(pluginAction).addCategory(Plugin.CATEGORY_PLAGGABLE), 0);
 
         for (ResolveInfo info : resolveInfoList) {
             final ActivityInfo activityInfo = info.activityInfo;
