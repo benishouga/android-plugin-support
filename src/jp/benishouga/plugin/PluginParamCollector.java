@@ -149,7 +149,7 @@ public class PluginParamCollector {
             }
 
             PluginParamHolder holder = new PluginParamHolder(activityInfo.loadLabel(pm).toString(), activityInfo.name, activityInfo.packageName);
-            List<ResolveInfo> settingList = pm.queryIntentActivities(new Intent(holder.getSettingClassName()), PackageManager.MATCH_DEFAULT_ONLY);
+            List<ResolveInfo> settingList = pm.queryIntentActivities(new Intent().setClassName(holder.getPackageName(), holder.getSettingClassName()), 0);
             list.add(holder.setExistSettingAcitivity(settingList != null && settingList.size() > 0));
         }
         return list;

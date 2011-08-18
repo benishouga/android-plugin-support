@@ -5,7 +5,7 @@ import java.util.ArrayList;
 public class PluginParamHolder extends ArrayList<PluginParam> {
     private static final long serialVersionUID = 1L;
 
-    private static final String SETTING_CLASS_NAME_SUFFIX = "Setting";
+    private static final String SETTING_CLASS_NAME_SUFFIX = "Settings";
 
     private String applicationName;
     private String className;

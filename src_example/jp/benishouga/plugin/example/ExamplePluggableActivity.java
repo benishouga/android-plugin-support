@@ -5,6 +5,7 @@ import java.util.List;
 import jp.benishouga.plugin.Plugin;
 import jp.benishouga.plugin.PluginParam;
 import jp.benishouga.plugin.PluginParamCollector;
+import jp.benishouga.plugin.PluginParamCollector.OnErrorPluginListener;
 import jp.benishouga.plugin.PluginParamCollector.OnFindPluginListener;
 import jp.benishouga.plugin.PluginParamHolder;
 import jp.benishouga.plugin.R;
@@ -23,11 +24,19 @@ public class ExamplePluggableActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
-        PluginParamCollector collector = new PluginParamCollector(this, "jp.benishouga.plugin.example.ACTION_PICK_PLUGIN");
+        PluginParamCollector collector = new PluginParamCollector(this, "jp.benishouga.lettuce.ACTION_PLUGIN");
         collector.setOnFindPluginListener(new OnFindPluginListener() {
             @Override
             public boolean onFindPlugin(String targetName, String packageName) {
+                Log.d("Pluggable", "onFindPlugin targetName: " + targetName + ", packageName: " + packageName);
                 return true;
+            }
+        });
+
+        collector.setOnErrorPluginListener(new OnErrorPluginListener() {
+            @Override
+            public void onErrorPlugin(PluginParamHolder holder, String source, Exception e) {
+                Log.e("Pluggable", "applicationName: " + holder.getApplicationName() + ", source: " + source, e);
             }
         });
         List<PluginParamHolder> list = collector.collectPluginParam("http://www.yahoo.co.jp");
