@@ -43,7 +43,8 @@ public class PluginParamCollector {
     }
 
     /**
-     * プラグインとのアプリケーションとの連携でエラーが発生した際のlistenerクラスを設定します。
+     * プラグインアプリケーションとの連携でエラーが発生した際のlistenerクラスを設定します。このリスナーが設定されていない場合、
+     * プラグインアプリケーションないでエラーが発生した場合、{@link }PluginErrorException} を throwします。
      */
     public void setOnErrorPluginListener(OnErrorPluginListener listener) {
         this.onErrorPluginListener = listener;
@@ -84,6 +85,9 @@ public class PluginParamCollector {
      * @param source
      *            プラグインに渡す文字列
      * @return プラグイン情報
+     *
+     * @throws PluginErrorException
+     *             プラグイン情報の収集で例外が発生し、例外をハンドリングするリスナーが登録されていなかった際、この例外が投げられます。
      */
     public List<PluginParamHolder> collectPluginParam(String source) {
         List<PluginParamHolder> list = collectPlugin();
@@ -93,7 +97,7 @@ public class PluginParamCollector {
                 queryPlugin(holder, source);
             } catch (Exception e) {
                 if (onErrorPluginListener == null) {
-                    throw new PluginErrorException(e);
+                    throw new PluginErrorException(holder.getApplicationName() + " failed.. It is called with " + source, e);
                 }
                 onErrorPluginListener.onErrorPlugin(holder, source, e);
             }
