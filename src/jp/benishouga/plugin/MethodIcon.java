@@ -1,7 +1,7 @@
 package jp.benishouga.plugin;
 
 /**
- * メソッドを表示するためのアイコンを指定するための列挙です。
+ * プラグイン連携の種別を表現するためのアイコンを指定するための列挙です。
  *
  * @author benishouga
  */
@@ -17,5 +17,11 @@ public enum MethodIcon {
     /** 地図アイコンを表示します。 */
     Map,
     /** メモアイコンを表示します。 */
-    Memo;
+    Memo,
+    /** World Wide Webアイコンを表示します。 */
+    Www,
+    /** 名刺アイコンを表示します。 */
+    Organizations,
+    /** イベントアイコンを表示します。 */
+    Event;
 }

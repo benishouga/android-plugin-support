@@ -2,7 +2,6 @@ package jp.benishouga.plugin.example;
 
 import java.util.List;
 
-import jp.benishouga.plugin.Plugin;
 import jp.benishouga.plugin.PluginParam;
 import jp.benishouga.plugin.PluginParamCollector;
 import jp.benishouga.plugin.PluginParamCollector.OnErrorPluginListener;
@@ -57,44 +56,29 @@ public class ExamplePluggableActivity extends Activity {
                 Log.d("Pluggable", "param.text: " + param.getText());
                 Button button = (Button) this.getLayoutInflater().inflate(R.layout.button, null);
                 button.setText(param.getText());
-                button.setOnClickListener(new PluginOnClickListener(holder.getPackageName(), holder.getClassName(), param));
+                button.setOnClickListener(new IntentOnClickListener(param.createIntent()));
                 main.addView(button);
 
             }
+            
             Button settings = (Button) this.getLayoutInflater().inflate(R.layout.button, null);
             settings.setText(holder.getApplicationName() + "の設定画面を呼び出す");
-            settings.setOnClickListener(new OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    ExamplePluggableActivity.this.startActivity(new Intent().setClassName(holder.getPackageName(), holder.getSettingClassName()));
-                }
-            });
+            settings.setOnClickListener(new IntentOnClickListener(holder.createSettingsIntent()));
             main.addView(settings);
         }
     }
 
-    private class PluginOnClickListener implements OnClickListener {
+    private class IntentOnClickListener implements OnClickListener {
 
-        private String packageName;
-        private String name;
-        private PluginParam pluginParam;
+        private Intent intent;
 
-        public PluginOnClickListener(String packageName, String name, PluginParam pluginParam) {
-            this.packageName = packageName;
-            this.name = name;
-            this.pluginParam = pluginParam;
+        public IntentOnClickListener(Intent intent) {
+            this.intent = intent;
         }
 
         @Override
         public void onClick(View v) {
-            Intent intent = new Intent();
-
-            intent.addCategory(Plugin.CATEGORY_PLAGGABLE).setClassName(packageName, name);
-            intent.putExtra(Plugin.EXTRAS_ACTION, pluginParam.getAction());
-            intent.putExtra(Plugin.EXTRAS_DATA, pluginParam.getData());
-            intent.putExtra(Plugin.EXTRAS_TYPE, pluginParam.getType());
-
-            startActivity(intent);
+            startActivity(this.intent);
         }
     }
 }

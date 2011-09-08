@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import jp.benishouga.plugin.AbstractPluginProvider.PluginCursor;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -123,7 +124,7 @@ public class PluginParamCollector {
         if (cur != null) {
             try {
                 while (cur.moveToNext()) {
-                    holder.add(PluginCursor.revert(cur));
+                    PluginCursor.extract(cur, holder.create());
                 }
             } finally {
                 cur.close();

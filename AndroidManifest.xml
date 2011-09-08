@@ -4,6 +4,9 @@
   <uses-sdk android:minSdkVersion="4" />
   <application android:icon="@drawable/icon" android:label="ExamplePluggable"
     android:debuggable="false">
+
+    <!-- プラグイン拡張可能な Activity 例 このアプリケーションは起動時に "jp.benishouga.plugin.example.ExamplePlugin" が Action名
+      として登録されている プラグインアプリ を検索します。 -->
     <activity android:name="jp.benishouga.plugin.example.ExamplePluggableActivity"
       android:label="ExamplePluggableActivity">
       <intent-filter>
@@ -11,20 +14,29 @@
         <category android:name="android.intent.category.LAUNCHER" />
       </intent-filter>
     </activity>
+
+    <!-- プラグインアプリケーション、"jp.benishouga.plugin.example.ExamplePlugin" に反応するよう intent-filter が設定されています。
+      この "jp.benishouga.plugin.example.ExamplePlugin" は、プラガブルアプリとプラグインアプリ間で 任意の Action名 を指定することができます。 categoryとして
+      "jp.benishouga.plugin.category.PLAGGABLE" を設定します。 -->
     <activity android:name="jp.benishouga.plugin.example.ExamplePlugin" android:label="ExamplePlugin">
       <intent-filter>
         <action android:name="jp.benishouga.plugin.example.ACTION_PICK_PLUGIN" />
         <category android:name="jp.benishouga.plugin.category.PLAGGABLE" />
       </intent-filter>
     </activity>
+
+    <!-- プラグインアプリケーションからプラガブルアプリケーションへ呼び出す際の情報を渡すために利用する Provider です。 authorities に プラグインアプリケーションの name
+      を指定する必要があります。 -->
+    <provider android:name="jp.benishouga.plugin.example.ExamplePluginProvider"
+      android:authorities="jp.benishouga.plugin.example.ExamplePlugin" />
+
+    <!-- プラグインアプリケーションの設定画面、プラグインアプリのActivity名 + "Settings" という名前で登録することで自動で認識します。 -->
     <activity android:name="jp.benishouga.plugin.example.ExamplePluginSettings"
       android:label="ExamplePluginSettings">
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
       </intent-filter>
     </activity>
-    <provider android:name="jp.benishouga.plugin.example.ExamplePluginProvider"
-      android:authorities="jp.benishouga.plugin.example.ExamplePlugin" />
   </application>
 
 </manifest>

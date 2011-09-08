@@ -15,5 +15,5 @@ public class Plugin {
      * {@link AbstractPluginProvider}
      * を呼び出したUriからプラグイン起動情報のデータ取得元となるUri文字列を取得するためのクエリストリングキー。
      */
-    public static final String QUERY_KEY_SOURCE = "source";
+    static final String QUERY_KEY_SOURCE = "source";
 }
